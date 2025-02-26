@@ -1,0 +1,25 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+
+    <!-- page content -->
+        <div class="right_col" role="main">
+          <!-- top tiles -->
+
+            <div class="container text-center mt-5">
+              <h2>Paso 1: Elige la Modalida de Titulación</h2>
+              <div class="row justify-content-center mt-4">
+                  <div class="col-md-4">
+                      <a href="{% url 'modalidad_1' %}" class="btn btn-primary btn-lg">Proyecto Personal </a>
+                      <a href="" class="btn btn-primary btn-lg"><i class="fa fa-arrow-right" aria-hidden="true"></i> </a>
+                  </div>
+                  <div class="col-md-4">
+                      <a href="{% url 'modalidad_2' %}" class="btn btn-secondary btn-lg">Proyecto Grupal</a>
+                      <a href="#" class="btn btn-secondary btn-lg"><i class="fa fa-arrow-right" aria-hidden="true"></i> </a>
+                  </div>
+              </div>
+          </div>
+
+        </div>
+        <!-- /page content -->
+{% endblock %}

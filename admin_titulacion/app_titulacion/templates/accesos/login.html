@@ -1,0 +1,48 @@
+{% extends '../index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1 style="text-align:center">Iniciar Sesión</h1>
+
+    <main class="container">
+        <div class="row">
+            <div class="col-md-4 offset-md-4">
+                <form method="post" class="card card-body">
+                    <div class="mb-3">
+                        {{error}}
+                        {% csrf_token %}  
+                        <label for="id_username" class="form-label">Nombre de Usuario ejemplo: ( lquito, jpicon, aurbina )</label>
+                        <input type="text" name="username" class="form-control" id="id_username" required maxlength="150">
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="id_password" class="form-label">Password</label>
+                      <input type="password" name="password" class="form-control" id="id_password">
+                    </div>
+            
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                  </form>
+            </div>
+        </div>
+    </main>
+    
+
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            <script>
+                // Verificar si hay un mensaje de éxito (indicando inicio de sesión exitoso) para activar el redireccionamiento
+                var successMessage = document.querySelector('ul li');
+                if (successMessage && successMessage.innerText.includes('Inicio de sesión exitoso')) {
+                    // Eliminar la página de inicio de sesión del historial del navegador
+                    window.history.replaceState({}, document.title, "/");
+                }
+            </script>
+        {% endif %}
+    
+
+
+{% endblock %}
