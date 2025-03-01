@@ -1,0 +1,31 @@
+{% extends "../index.html" %}
+
+{% block content %}
+
+
+<div class="right_col" role="main">
+    <!-- top tiles -->
+    <div class="row" style="display: inline-block;" >
+      
+        <h2>Lista de Estudiantes</h2>
+        <table border="1">
+            <tr>
+                <th>Estudiante</th>
+                <th>Modalidad</th>
+                <th>Carrera</th>
+                <th>Acciones</th>
+            </tr>
+            {% for estudiante in estudiantes %}
+            <tr>
+                <td>{{ estudiante.estudiante.username }}</td>
+                <td>{{ estudiante.modalidad }}</td>
+                <td>{{ estudiante.carrera }}</td>
+                <td>
+                    <a href="{% url 'validar_documentos' estudiante.id %}">Validar Documentos</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+  </div>
+{% endblock %}

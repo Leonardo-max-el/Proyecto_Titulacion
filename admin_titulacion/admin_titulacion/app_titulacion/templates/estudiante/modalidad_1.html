@@ -1,0 +1,42 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+
+    <!-- page content -->
+        <div class="right_col" role="main">
+          <!-- top tiles -->
+          <div class="row" style="display: inline-block;" >
+            <h2 class="mb-4">Subida de Documentos - Modalidad 1</h2>
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">DNI (PDF):</label>
+                    <input type="file" class="form-control" name="dni" accept=".pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Pago (PDF):</label>
+                    <input type="file" class="form-control" name="pago" accept=".pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tesis (Word):</label>
+                    <input type="file" class="form-control" name="tesis" accept=".doc,.docx" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Copia de Bachiller (PDF):</label>
+                    <input type="file" class="form-control" name="copia_bachiller_1" accept=".pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Declaración Jurada (PDF):</label>
+                    <input type="file" class="form-control" name="declaracion_jurada" accept=".pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Boucher de Pago (PDF):</label>
+                    <input type="file" class="form-control" name="boucher_pago_1" accept=".pdf" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Subir Documentos</button>
+            </form>
+
+          </div>
+        </div>
+        <!-- /page content -->
+{% endblock %}

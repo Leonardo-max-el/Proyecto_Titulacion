@@ -1,0 +1,56 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+
+<div class="right_col" role="main">
+    <h2>Validar Documentos de {{ estudiante.estudiante.username }}</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+  
+        
+        <label>Carrera</label>
+        <a href="{{ estudiante.estado_carrera }}" target="_blank">Ver Archivo</a>
+        <select name="estado_carrera">
+            <option value="pendiente" {% if estudiante.estado_carrera == "pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="aprobado" {% if estudiante.estado_carrera == "aprobado" %}selected{% endif %}>Aprobado</option>
+            <option value="corregir" {% if estudiante.estado_carrera == "corregir" %}selected{% endif %}>Requiere Corrección</option>
+        </select>
+
+
+            <label>DNI 1:</label>
+            <a href="{{ estudiante.estado_dni_1 }}" target="_blank">Ver Archivo</a>
+            <select name="estado_dni_1">
+                <option value="pendiente" {% if estudiante.estado_dni_1 == "pendiente" %}selected{% endif %}>Pendiente</option>
+                <option value="aprobado" {% if estudiante.estado_dni_1 == "aprobado" %}selected{% endif %}>Aprobado</option>
+                <option value="corregir" {% if estudiante.estado_dni_1 == "corregir" %}selected{% endif %}>Requiere Corrección</option>
+            </select>
+    
+        <br><br>
+    
+        <!-- <label>Pago:</label>
+        <a href="{{ estudiante.pago.url }}" target="_blank">Ver Archivo</a>
+        <select name="estado_pago">
+            <option value="pendiente" {% if estudiante.estado_pago == "pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="aprobado" {% if estudiante.estado_pago == "aprobado" %}selected{% endif %}>Aprobado</option>
+            <option value="corregir" {% if estudiante.estado_pago == "corregir" %}selected{% endif %}>Requiere Corrección</option>
+        </select>
+    
+        <br><br>
+    
+        <label>Tesis:</label>
+        <a href="{{ estudiante.tesis.url }}" target="_blank">Ver Archivo</a>
+        <select name="estado_tesis">
+            <option value="pendiente" {% if estudiante.estado_tesis == "pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="aprobado" {% if estudiante.estado_tesis == "aprobado" %}selected{% endif %}>Aprobado</option>
+            <option value="corregir" {% if estudiante.estado_tesis == "corregir" %}selected{% endif %}>Requiere Corrección</option>
+        </select> -->
+    
+        <br><br>
+    
+        <button type="submit">Guardar Cambios</button>
+    </form>
+
+</div> 
+
+{% endblock %}
