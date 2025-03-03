@@ -12,34 +12,41 @@ def seleccion_modalidad (request):
 
 @login_required
 def modalidad_1(request):
-    estudiante, created = DocumentoEstudiante.objects.get_or_create(
+    estudiante = DocumentoEstudiante.objects.filter(
         estudiante=request.user, modalidad='modalidad_1'
-    )  # Obtiene o crea el registro del estudiante
-
-    archivos_enviados = estudiante is not None  # Verifica si ya subió documentos
+    ).first()  # Busca el registro, pero NO lo crea automáticamente
 
     if request.method == 'POST':
-        estudiante.carrera = request.POST.get('carrera')
-        estudiante.estado_carrera = 'pendiente'  # Marcar la carrera como pendiente si se cambia
+        if not estudiante:
+            estudiante = DocumentoEstudiante.objects.create(
+                estudiante=request.user, modalidad='modalidad_1'
+            )  # Ahora se crea SOLO si el usuario sube algo
 
-        # Lista de archivos a actualizar
-        archivos = ['dni_1']  # Agrega más si es necesario
+        estudiante.carrera = request.POST.get('carrera', estudiante.carrera)
+        estudiante.estado_carrera = 'pendiente'  # Si cambia la carrera, vuelve a "pendiente"
 
+        archivos = ['dni_1']
         for archivo in archivos:
             archivo_subido = request.FILES.get(archivo)
             if archivo_subido:
-                setattr(estudiante, archivo, archivo_subido)  # Reemplaza el archivo
-                setattr(estudiante, f"estado_{archivo}", 'pendiente')  # Lo vuelve a marcar como pendiente
+                setattr(estudiante, archivo, archivo_subido)
+                setattr(estudiante, f"estado_{archivo}", 'pendiente')  # Marca el documento como pendiente
 
-        estudiante.save()  # Guarda los cambios en la base de datos
-
-        messages.success(request, "Datos actualizados correctamente. Espere la validación del área de Grados y Títulos.")
+        estudiante.save()
+        messages.success(request, "Datos actualizados correctamente.")
         return redirect('modalidad_1')
 
     return render(request, 'estudiante/modalidad_1.html', {
-        'archivos_enviados': archivos_enviados,
+        'archivos_enviados': estudiante is not None,
         'estudiante': estudiante  
     })
+
+
+
+
+
+
+
 
 @login_required
 def modalidad_2(request):

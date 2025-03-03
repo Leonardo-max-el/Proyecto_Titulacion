@@ -57,10 +57,10 @@
               <ul class="nav side-menu">
                 <li><a><i class="fa fa-home" aria-hidden="true"></i> Home <span class="fa fa-chevron-down"></span></a>
                   <ul class="nav child_menu">
-                    {% if not user.is_authenticated %}
+                    <!-- {% if not user.is_authenticated %} -->
                       <li><a href="{% url 'register' %}"><i class="fa fa-list" aria-hidden="true"></i> Registrarse</a></li>
                       <li><a href="{% url 'login' %}"><i class="fa fa-plus" aria-hidden="true"></i> Iniciar Sesión</a></li>
-                    {% endif %}
+                    <!-- {% endif %} -->
                   </ul>
                 </li>
                 <li><a><i class="fa fa-users" aria-hidden="true"></i> Estudiantes <span class="fa fa-chevron-down"></span></a>
@@ -69,7 +69,7 @@
                       <li><a href="{% url 'lista_estudiantes' %}"><i class="fa fa-list" aria-hidden="true"></i> Listar</a></li>
              
               
-                      <li><a href=""><i class="fa fa-plus" aria-hidden="true"></i> Lista</a></li>
+                      <li><a href="{% url 'seleccion_modalidad' %}"><i class="fa fa-plus" aria-hidden="true"></i> Tipo Titulación</a></li>
                       <li><a href="#"><i class="fa fa-refresh" aria-hidden="true"></i> Actualizar</a></li>
                       <li><a href="#"><i class="fa fa-trash" aria-hidden="true"></i> Eliminar</a></li>
             
@@ -77,14 +77,14 @@
                 </li>
                 <li><a><i class="fa fa-edit"></i> Activos <span class="fa fa-chevron-down"></span></a>
                   <ul class="nav child_menu">
-                    {% if user.is_authenticated %}
-                      <li><a href="#"><i class="fa fa-list" aria-hidden="true"></i> Listar</a></li>
-                    {% endif %}
-                    {% if request.user.username == "totaladmin" %}
+                    <!-- {% if user.is_authenticated %} -->
+                      <li><a href="#"><i class="fa fa-list" aria-hidden="true"></i>Modelo</a></li>
+                    <!-- {% endif %}
+                    {% if request.user.username == "totaladmin" %} -->
                       <li><a href="#"><i class="fa fa-plus" aria-hidden="true"></i> Agregar</a></li>
                       <li><a href="{% url 'list_actives' %}"><i class="fa fa-refresh" aria-hidden="true"></i> Actualizar</a></li>
                       <li><a href="{% url 'list_actives' %}"><i class="fa fa-trash" aria-hidden="true"></i> Eliminar</a></li>
-                    {% endif %}
+                    <!-- {% endif %} -->
                   </ul>
                 </li>
                 <li><a><i class="fa fa-clone"></i> Documentación <span class="fa fa-chevron-down"></span></a>
