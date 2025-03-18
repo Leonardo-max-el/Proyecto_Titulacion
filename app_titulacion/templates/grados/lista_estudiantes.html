@@ -1,0 +1,79 @@
+{% extends "../index.html" %}
+
+{% block content %}
+<div class="w-full p-6 bg-gradient-to-br from-gray-50 to-gray-100" role="main">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">
+                <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Lista de Estudiantes
+                </span>
+            </h2>
+            <div class="flex space-x-4">
+                <span class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium">
+                    Total: {{ estudiantes|length }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="overflow-hidden bg-white rounded-xl shadow-lg border border-gray-100">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                            Estudiante
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                            Tipo de Modalidad
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                            Carrera
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for estudiante in estudiantes %}
+                    <tr class="hover:bg-blue-50 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-medium text-sm">
+                                    {{ estudiante.estudiante.username|slice:":1" }}
+                                </div>
+                                <span class="ml-3 text-sm font-medium text-gray-700">
+                                    {{ estudiante.estudiante.first_name }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full 
+                                {% if estudiante.modalidad == '1' %}
+                                    bg-green-100 text-green-700
+                                {% else %}
+                                    bg-purple-100 text-purple-700
+                                {% endif %}">
+                                {{ estudiante.modalidad }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-medium text-gray-700">{{ estudiante.carrera }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="{% url 'validar_documentos' estudiante.id %}" 
+                               class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Validar Documentos
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

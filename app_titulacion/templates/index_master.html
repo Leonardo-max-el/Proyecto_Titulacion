@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grados y Títulos</title>
+    <link rel="icon" href="{% static 'images/server.png' %}" type="image/ico" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex" x-data="{ sidebarOpen: true }">
+        <!-- Sidebar -->
+        <div class="transition-all duration-300 ease-in-out hover:w-64 bg-gray-800 text-white" 
+             :class="sidebarOpen ? 'w-64' : 'w-20'" 
+             @mouseenter="sidebarOpen = true"
+             @mouseleave="sidebarOpen = false">
+            
+            <!-- Logo -->
+            <div class="p-4 border-b border-gray-700">
+                <a href="http://localhost:8000" class="flex items-center space-x-2">
+                    <img src="{% static 'images/LogoUpla.png' %}" alt="UPLA" class="w-8 h-8 rounded-full">
+                    <span class="text-xl font-bold text-gray-200" x-show="sidebarOpen">UPLA</span>
+                </a>
+            </div>
+
+            <!-- Navigation Menu -->
+       
+           <!-- Navigation Menu -->
+           <nav class="mt-4">
+            <div class="px-4">
+                <h3 class="text-xs uppercase text-gray-500 font-semibold" x-show="sidebarOpen">General</h3>
+                
+                <!-- Home Menu -->
+                <div class="mt-4" x-data="{ isOpen: false }">
+                    <button @click="isOpen = !isOpen" class="flex items-center justify-between w-full px-2 py-2 text-gray-200 hover:bg-gray-700 rounded">
+                        <div class="flex items-center">
+                            <i class="fa fa-home mr-3"></i>
+                            <span x-show="sidebarOpen">Home</span>
+                        </div>
+                        <i class="fa fa-chevron-down text-xs" x-show="sidebarOpen" :class="{ 'transform rotate-180': isOpen }"></i>
+                    </button>
+                    <div x-show="isOpen && sidebarOpen" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 transform translate-y-0"
+                         x-transition:leave-end="opacity-0 transform -translate-y-2"
+                         class="ml-4 mt-2">
+                        <a href="{% url 'register' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                            <i class="fa fa-list mr-3"></i>
+                            <span x-show="sidebarOpen">Registrarse</span>
+                        </a>
+                        <a href="{% url 'login' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                            <i class="fa fa-plus mr-3"></i>
+                            <span x-show="sidebarOpen">Iniciar Sesión</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Estudiantes Menu -->
+                <div class="mt-4" x-data="{ isOpen: false }">
+                    <button @click="isOpen = !isOpen" class="flex items-center justify-between w-full px-2 py-2 text-gray-200 hover:bg-gray-700 rounded">
+                        <div class="flex items-center">
+                            <i class="fa fa-users mr-3"></i>
+                            <span x-show="sidebarOpen">Estudiantes</span>
+                        </div>
+                        <i class="fa fa-chevron-down text-xs" x-show="sidebarOpen" :class="{ 'transform rotate-180': isOpen }"></i>
+                    </button>
+                    <div x-show="isOpen && sidebarOpen" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 transform translate-y-0"
+                         x-transition:leave-end="opacity-0 transform -translate-y-2"
+                         class="ml-4 mt-2">
+                        <a href="{% url 'lista_estudiantes' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                            <i class="fa fa-list mr-3"></i>
+                            <span x-show="sidebarOpen">Listar</span>
+                        </a>
+                        <a href="{% url 'seleccion_modalidad' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                            <i class="fa fa-plus mr-3"></i>
+                            <span x-show="sidebarOpen">Tipo Titulación</span>
+                        </a>
+                    </div>
+                </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 bg-gray-100">
+            <!-- Top Navigation -->
+            <div class="bg-white shadow">
+                <div class="flex justify-between items-center px-4 py-3">
+                    <button class="text-gray-500 hover:text-gray-600">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                    {% if user.is_authenticated %}
+                    <form action="{% url 'clouses' %}" method="POST" class="flex items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="logout" value="true">
+                        <button type="submit" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+                            <i class="fa fa-rocket"></i>
+                            <span>Cerrar Sesión</span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="p-6">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Alpine.js for dropdowns -->
+    <script src="https://unpkg.com/alpinejs" defer></script>
+</body>
+        <!-- Sidebar -->
+ 
+
+</html>

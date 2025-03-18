@@ -1,0 +1,55 @@
+{% extends "../base_register.html" %}
+
+{% block title %}Iniciar Sesión - Universidad Upla{% endblock %}
+
+{% block content %}
+<!-- Formulario de login -->
+<div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full mb-8">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Iniciar Sesión</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-4 text-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        {% if error %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span class="block sm:inline">{{ error }}</span>
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="id_username" class="block text-gray-700 text-sm font-semibold mb-2">Correo Electrónico</label>
+            <input type="text" name="email" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none" id="id_username" required maxlength="150">
+        </div>
+            
+        <div class="form-group">
+            <label for="id_password" class="block text-gray-700 text-sm font-semibold mb-2">Contraseña</label>
+            <input type="password" name="password" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none" id="id_password" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition duration-300 text-sm font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                Iniciar Sesión
+            </button>
+            <a href="{% url 'register' %}" class="w-full bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-4 rounded-lg hover:from-gray-600 hover:to-gray-700 transition duration-300 text-sm font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-center inline-block">
+                Registrarse
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if messages %}
+    <script>
+        var successMessage = document.querySelector('.bg-green-100');
+        if (successMessage && successMessage.innerText.includes('Inicio de sesión exitoso')) {
+            window.history.replaceState({}, document.title, "/");
+        }
+    </script>
+{% endif %}
+{% endblock %}
