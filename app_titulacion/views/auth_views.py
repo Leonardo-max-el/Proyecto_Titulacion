@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
-from django.contrib.auth.models import User, Permission, Group
+
 from django.contrib.auth import authenticate, login , logout
 from django.db import IntegrityError
 from django.shortcuts import redirect
@@ -8,42 +8,44 @@ from django.views.decorators.cache import never_cache
 from django.urls import reverse  # Importar reverses
 
 
+from django.contrib.auth.hashers import make_password
+from django.shortcuts import render, redirect
+from app_titulacion.models import User,Estudiante
+from django.contrib import messages
+
+
 def register(request):
-    
-    if request.method == 'GET':    
-        return render(request, './accesos/register.html', {
-            'form':UserCreationForm
-        })
-    
-    else:
-        
-        if request.POST['password1'] == request.POST['password2']:
-            try:
-                user = User.objects.create_user(
-                    username=request.POST["email"],  # Using email as username
-                    first_name=request.POST["first_name"],
-                    email=request.POST["email"],
-                    password=request.POST["password1"]
-                )
-                
-                user.save()
-                
-                user = authenticate(
-                    request,
-                    username=request.POST["email"],  # Using email for authentication
-                    password=request.POST["password1"]
-                )
-                
-                if user is not None:
-                    login(request, user)  # Esto ya incluye el backend correcto
-                    return redirect('login')
+    if request.method == 'POST':
+        try:
+            # Create and save User in DB
+            user = User.objects.create_user(
+                username=request.POST['dni'],
+                password=request.POST['password']
+            )
 
-            except IntegrityError:
-                
-                return render(request, './accesos/register.html', {'form':UserCreationForm,"error": 'EL usuario ya existe'})
+            # Create and save Estudiante in DB
+            estudiante = Estudiante.objects.create(
+                user=user,
+                nombres=request.POST['nombres'],
+                apellido_paterno=request.POST['apellido_paterno'],
+                apellido_materno=request.POST['apellido_materno'],
+                escuela_profesional=request.POST['escuela_profesional'],
+                telefono=request.POST['telefono'],
+                direccion=request.POST['direccion'],
+                email=request.POST['email']
+            )
+            
+            messages.success(request, '¡Usuario registrado exitosamente!')
+            return redirect('login')
 
-        return render(request, './accesos/register.html',{'form': UserCreationForm,"error": 'Contraseñas Incorrecta'})
+        except IntegrityError:
+            return render(request, './accesos/register.html', 
+                {'error': 'El DNI o correo electrónico ya está registrado'})
     
+    # Handle GET request - show the registration form
+    return render(request, './accesos/register.html')
+
+
 
 def clouses(request):
     if request.method == 'POST':
@@ -63,40 +65,32 @@ def custom_login_view(request):
         })
 
     else:
-        email = request.POST['email']
-        password = request.POST['password']
-        
         try:
-            # Get the first user with this email
-            user = User.objects.filter(email=email).first()
+            # Print form data to see what we're receiving
+            print("Form data:", request.POST)
             
-            if user is None:
-                return render(request, './accesos/login.html', {
-                    'form': AuthenticationForm,
-                    'error': "El correo electrónico no está registrado"
-                })
-
-            # Authenticate using username (email) and password
+            # Get username and password from form
+            username = request.POST.get('username', '')  # Using get() with default value
+            password = request.POST.get('password', '')
+            
+            # Authenticate with username (which contains DNI)
             user = authenticate(
                 request,
-                username=user.username,  # Use the actual username from the user object
+                username=username,
                 password=password
             )
 
             if user is not None:
                 login(request, user)
-                
-                if user.email == "totaladmin":
-                    return redirect('inicio_titulacion')
-                
                 return redirect('inicio_titulacion')
             else:
                 return render(request, './accesos/login.html', {
                     'form': AuthenticationForm,
-                    'error': "Contraseña incorrecta"
+                    'error': "Usuario o contraseña incorrecta"
                 })
                 
         except Exception as e:
+            print("Login error:", str(e))  # Add error logging
             return render(request, './accesos/login.html', {
                 'form': AuthenticationForm,
                 'error': "Error en el inicio de sesión. Por favor, intente nuevamente."

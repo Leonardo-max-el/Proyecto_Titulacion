@@ -1,5 +1,45 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
+
+class User(AbstractUser):
+    def __str__(self):
+        return self.username
+
+class Estudiante(models.Model):
+    ESCUELA_CHOICES = [
+        ('Derecho', 'Derecho'),
+        ('Ing. Sistemas', 'Ing. Sistemas'),
+        ('Agronomía', 'Agronomía'),
+        ('Veterinaria', 'Veterinaria'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nombres = models.CharField(max_length=100, null=False, default='')
+    apellido_paterno = models.CharField(max_length=100, null=False, default='')
+    apellido_materno = models.CharField(max_length=100, null=False, default='')
+    escuela_profesional = models.CharField(max_length=50, choices=ESCUELA_CHOICES, default='Derecho')
+    direccion = models.CharField(max_length=200, default='')
+    email = models.EmailField(unique=True)
+    telefono = models.CharField(
+        max_length=9,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{9}$',
+                message='Teléfono debe contener 9 dígitos'
+            )
+        ],
+        default=''
+    )
+    
+
+    def __str__(self):
+        return f"{self.nombres} {self.apellido_paterno}"
+
+    @property
+    def nombre_completo(self):
+        return f"{self.nombres} {self.apellido_paterno}"
+
 
 def estudiante_directory_path(instance, filename):
     return f'documentos/{instance.estudiante.username}/{filename}'

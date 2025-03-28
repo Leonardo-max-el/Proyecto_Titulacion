@@ -54,6 +54,11 @@ INSTALLED_APPS = [
     # 'django_browser_reload',
 ]
 
+AUTH_USER_MODEL = 'app_titulacion.User'
+
+
+# ... other settings ...
+
 TAILWIND_APP_NAME = 'theme'
 # ... existing code ...
 # Ruta de NPM
