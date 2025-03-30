@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.utils import timezone
 
 class User(AbstractUser):
     def __str__(self):
@@ -23,15 +24,9 @@ class Estudiante(models.Model):
     email = models.EmailField(unique=True)
     telefono = models.CharField(
         max_length=9,
-        validators=[
-            RegexValidator(
-                regex=r'^\d{9}$',
-                message='Teléfono debe contener 9 dígitos'
-            )
-        ],
+        validators=[RegexValidator(regex=r'^\d{9}$', message='Teléfono debe contener 9 dígitos')],
         default=''
     )
-    
 
     def __str__(self):
         return f"{self.nombres} {self.apellido_paterno}"
@@ -40,9 +35,128 @@ class Estudiante(models.Model):
     def nombre_completo(self):
         return f"{self.nombres} {self.apellido_paterno}"
 
+class Expediente(models.Model):
+    ESTADO_CHOICES = [
+        ('en_proceso', 'En Proceso'),
+        ('enviado', 'Enviado'),
+        ('observado', 'Observado'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado')
+    ]
+
+    MODALIDAD_CHOICES = [
+        ('trabajo_suficiencia', 'Trabajo de Suficiencia Profesional'),
+        ('trabajo_investigacion_individual', 'Trabajo de Investigación - Individual'),
+        ('trabajo_investigacion_grupal', 'Trabajo de Investigación - Grupal')
+    ]
+
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='expedientes')
+    codigo_expediente = models.CharField(max_length=20, unique=True)
+    modalidad = models.CharField(max_length=50, choices=MODALIDAD_CHOICES)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='en_proceso')
+    observaciones = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_expediente:
+            año = timezone.now().year
+            ultimo_expediente = Expediente.objects.filter(
+                codigo_expediente__startswith=f'EXP-{año}'
+            ).order_by('-codigo_expediente').first()
+            
+            if ultimo_expediente:
+                ultimo_numero = int(ultimo_expediente.codigo_expediente.split('-')[-1])
+                nuevo_numero = ultimo_numero + 1
+            else:
+                nuevo_numero = 1
+            
+            self.codigo_expediente = f'EXP-{año}-{nuevo_numero:04d}'
+        
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.codigo_expediente} - {self.estudiante.nombre_completo}"
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+
+class Documento(models.Model):
+    TIPO_DOCUMENTO_CHOICES = [
+        ('dni', 'DNI'),
+        ('solicitud', 'Solicitud de Título'),
+        ('declaracion_jurada', 'Declaración Jurada'),
+        ('constancia_egresado', 'Constancia de Egresado'),
+        ('certificado_estudios', 'Certificado de Estudios'),
+        ('trabajo_investigacion', 'Trabajo de Investigación'),
+        ('recibo_pago', 'Recibo de Pago'),
+        ('foto', 'Fotografía'),
+        ('otros', 'Otros Documentos')
+    ]
+
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('observado', 'Observado')
+    ]
+
+    expediente = models.ForeignKey(Expediente, on_delete=models.CASCADE, related_name='documentos')
+    tipo_documento = models.CharField(max_length=50, choices=TIPO_DOCUMENTO_CHOICES)
+    archivo = models.FileField(upload_to='documentos/%Y/%m/%d/')
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    observaciones = models.TextField(blank=True, null=True)
+    version = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.get_tipo_documento_display()} - {self.expediente.codigo_expediente}"
+
+    class Meta:
+        ordering = ['-fecha_subida']
+        unique_together = ['expediente', 'tipo_documento', 'version']
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Si es un nuevo documento
+            ultimo_documento = Documento.objects.filter(
+                expediente=self.expediente,
+                tipo_documento=self.tipo_documento
+            ).order_by('-version').first()
+            
+            if ultimo_documento:
+                self.version = ultimo_documento.version + 1
+
+        super().save(*args, **kwargs)
+
+    def get_document_fields(self):
+        """Retorna una lista de campos de documento con sus estados y valores"""
+        fields = []
+        document_fields = [
+            ('dni_1', 'DNI (Frente)'),
+            ('dni_2', 'DNI (Reverso)'),
+            ('tesis', 'Tesis'),
+            ('declaracion_jurada', 'Declaración Jurada'),
+            ('copia_bachiller_1', 'Copia de Bachiller (Frente)'),
+            ('copia_bachiller_2', 'Copia de Bachiller (Reverso)'),
+            ('boucher_pago_1', 'Boucher de Pago (Frente)'),
+            ('boucher_pago_2', 'Boucher de Pago (Reverso)'),
+            ('solicitud_1', 'Solicitud (Frente)'),
+            ('solicitud_2', 'Solicitud (Reverso)'),
+        ]
+        
+        for field_name, label in document_fields:
+            field = {
+                'name': field_name,
+                'label': label,
+                'value': getattr(self, field_name),
+                'estado': getattr(self, f'estado_{field_name}'),
+                'observaciones': getattr(self, f'observaciones_{field_name}', '')
+            }
+            fields.append(field)
+        
+        return fields
 
 def estudiante_directory_path(instance, filename):
-    return f'documentos/{instance.estudiante.username}/{filename}'
+    return f'documentos/{instance.user.username}/{filename}'
 
 ESTADO_CHOICES = [
     ('pendiente', 'Pendiente'),
@@ -50,69 +164,36 @@ ESTADO_CHOICES = [
     ('corregir', 'Requiere Corrección'),
 ]
 
-class DocumentoEstudiante(models.Model):
-    MODALIDAD_CHOICES = [
-        ('modalidad_1', 'Modalidad 1'),
-        ('modalidad_2', 'Modalidad 2'),
+class Titulacion_Individual(models.Model):
+    TIPO_DOCUMENTO_CHOICES = [
+        ('dni', 'DNI'),
+        ('tesis', 'Tesis'),
+        ('declaracion_jurada', 'Declaración Jurada'),
+        ('copia_bachiller', 'Copia de Bachiller'),
+        ('boucher_pago', 'Boucher de Pago'),
+        ('solicitud', 'Solicitud'),
     ]
 
-    CARRERA_CHOICES = [
-        ('Derecho', 'Derecho'),
-        ('Ing. Sistemas', 'Ing. Sistemas'),
-        ('Agronomía', 'Agronomía'),
-        ('Veterinaria', 'Veterinaria'),
-    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='titulacion')
+    tipo_documento = models.CharField(max_length=50, choices=TIPO_DOCUMENTO_CHOICES)
+    archivo = models.FileField(upload_to=estudiante_directory_path)
+    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    observaciones = models.TextField(blank=True, null=True)
+    version = models.IntegerField(default=1)  # Para manejar múltiples versiones del mismo documento
 
-    estudiante = models.ForeignKey(User, on_delete=models.CASCADE)
-    modalidad = models.CharField(max_length=20, choices=MODALIDAD_CHOICES)
-
-    # Campo de carrera con estado
-    carrera = models.CharField(max_length=50, choices=CARRERA_CHOICES, default='Derecho')
-    estado_carrera = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    # Documentos del estudiante con estado de validación
-    dni_1 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_dni_1 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    dni_2 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_dni_2 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    tesis = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_tesis = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    declaracion_jurada = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_declaracion_jurada = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    copia_bachiller_1 = models.FileField(upload_to=estudiante_directory_path, default='', blank=True, null=True)
-    estado_copia_bachiller_1 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    copia_bachiller_2 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_copia_bachiller_2 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    boucher_pago_1 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_boucher_pago_1 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    boucher_pago_2 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_boucher_pago_2 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    solicitud_1 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_solicitud_1 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    solicitud_2 = models.FileField(upload_to=estudiante_directory_path, blank=True, null=True)
-    estado_solicitud_2 = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-
-    def save(self, *args, **kwargs):
-        # Si la modalidad es 1, vaciar los campos extra de modalidad 2
-        if self.modalidad == 'modalidad_1':
-            self.dni_2 = None
-            self.estado_dni_2 = 'pendiente'
-            self.solicitud_2 = None
-            self.estado_solicitud_2 = 'pendiente'
-            self.copia_bachiller_2 = None
-            self.estado_copia_bachiller_2 = 'pendiente'
-            self.boucher_pago_2 = None
-            self.estado_boucher_pago_2 = 'pendiente'
-        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ['-fecha_subida']
+        unique_together = ['user', 'tipo_documento', 'version']  # Evita duplicados exactos
 
     def __str__(self):
-        return f"{self.estudiante.username} - {self.modalidad} - {self.carrera}"
+        return f"{self.user.username} - {self.tipo_documento} - v{self.version}"
+
+    def get_next_version(self):
+        """Obtiene la siguiente versión disponible para este tipo de documento"""
+        ultima_version = Titulacion_Individual.objects.filter(
+            user=self.user,
+            tipo_documento=self.tipo_documento
+        ).order_by('-version').first()
+        
+        return (ultima_version.version + 1) if ultima_version else 1

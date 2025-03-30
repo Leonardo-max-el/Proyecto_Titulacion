@@ -1,0 +1,56 @@
+{% extends "../index.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Crear Nuevo Expediente</h1>
+            <p class="mt-2 text-gray-600">Selecciona la modalidad de titulación para comenzar el proceso</p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-8">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="bg-white rounded-lg shadow-md p-6">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label for="modalidad" class="block text-sm font-medium text-gray-700 mb-2">
+                    Modalidad de Titulación
+                </label>
+                <select name="modalidad" id="modalidad" required
+                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 
+                               focus:border-blue-500 text-gray-700">
+                    <option value="">Selecciona una modalidad</option>
+                    {% for value, label in modalidades %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <a href="{% url 'inicio_titulacion' %}" 
+                   class="text-gray-600 hover:text-gray-800 font-medium">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg
+                               transition duration-300 ease-in-out flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Crear Expediente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

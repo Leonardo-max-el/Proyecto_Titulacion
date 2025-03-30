@@ -79,11 +79,11 @@
                          x-transition:leave-start="opacity-100 transform translate-y-0"
                          x-transition:leave-end="opacity-0 transform -translate-y-2"
                          class="ml-4 mt-2">
-                        <a href="{% url 'lista_estudiantes' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                        <a href="{% url 'lista_expedientes' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
                             <i class="fa fa-list mr-3"></i>
                             <span x-show="sidebarOpen">Listar</span>
                         </a>
-                        <a href="{% url 'seleccion_modalidad' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                        <a href="#" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
                             <i class="fa fa-plus mr-3"></i>
                             <span x-show="sidebarOpen">Tipo Titulación</span>
                         </a>

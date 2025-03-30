@@ -14,12 +14,13 @@ urlpatterns = [
     path('login/', auth_views.custom_login_view, name='login'),
     path('clouses',auth_views.clouses, name="clouses"),
     path('inicio_titulacion/', estudiante_views.inicio_titulacion, name='inicio_titulacion'),
-    path('modalidad_titulacion/', estudiante_views.modalidad_titulacion, name='modalidad_titulacion'),
-    path('modalidad_1', estudiante_views.modalidad_1, name="modalidad_1"),
-    path('modalidad_2', estudiante_views.modalidad_2, name="modalidad_2"),
-    path('seleccion_modalidad/', estudiante_views.seleccion_modalidad, name='seleccion_modalidad'),
-    path('lista_estudiantes', grados_views.lista_estudiantes, name='lista_estudiantes'),
-    path('validar/<int:estudiante_id>/', grados_views.validar_documentos, name='validar_documentos'),
+    path('crear_expediente/', estudiante_views.crear_expediente, name='crear_expediente'),
+    path('gestionar_expediente/<int:expediente_id>/', estudiante_views.gestionar_expediente, name='gestionar_expediente'),
+    
+    # Nuevas URLs para la gestión de expedientes
+    path('lista_expedientes/', grados_views.lista_expedientes, name='lista_expedientes'),
+    path('gestionar_expediente_admin/<int:expediente_id>/', grados_views.gestionar_expediente_admin, name='gestionar_expediente_admin'),
+    path('actualizar-observaciones/<int:documento_id>/', grados_views.actualizar_observaciones, name='actualizar_observaciones'),
 ] 
 if settings.DEBUG:
         urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
