@@ -38,7 +38,6 @@ class Estudiante(models.Model):
 class Expediente(models.Model):
     ESTADO_CHOICES = [
         ('en_proceso', 'En Proceso'),
-        ('enviado', 'Enviado'),
         ('observado', 'Observado'),
         ('aprobado', 'Aprobado'),
         ('rechazado', 'Rechazado')
@@ -164,36 +163,3 @@ ESTADO_CHOICES = [
     ('corregir', 'Requiere Corrección'),
 ]
 
-class Titulacion_Individual(models.Model):
-    TIPO_DOCUMENTO_CHOICES = [
-        ('dni', 'DNI'),
-        ('tesis', 'Tesis'),
-        ('declaracion_jurada', 'Declaración Jurada'),
-        ('copia_bachiller', 'Copia de Bachiller'),
-        ('boucher_pago', 'Boucher de Pago'),
-        ('solicitud', 'Solicitud'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='titulacion')
-    tipo_documento = models.CharField(max_length=50, choices=TIPO_DOCUMENTO_CHOICES)
-    archivo = models.FileField(upload_to=estudiante_directory_path)
-    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='pendiente')
-    fecha_subida = models.DateTimeField(auto_now_add=True)
-    observaciones = models.TextField(blank=True, null=True)
-    version = models.IntegerField(default=1)  # Para manejar múltiples versiones del mismo documento
-
-    class Meta:
-        ordering = ['-fecha_subida']
-        unique_together = ['user', 'tipo_documento', 'version']  # Evita duplicados exactos
-
-    def __str__(self):
-        return f"{self.user.username} - {self.tipo_documento} - v{self.version}"
-
-    def get_next_version(self):
-        """Obtiene la siguiente versión disponible para este tipo de documento"""
-        ultima_version = Titulacion_Individual.objects.filter(
-            user=self.user,
-            tipo_documento=self.tipo_documento
-        ).order_by('-version').first()
-        
-        return (ultima_version.version + 1) if ultima_version else 1
