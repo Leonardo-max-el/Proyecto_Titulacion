@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseForbidden
-from app_titulacion.models import User, Estudiante, Docente
+from app_titulacion.models import User, Estudiante, Docente, Administrativo
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 
@@ -28,33 +28,54 @@ def crear_usuario(request):
     if request.method == 'POST':
         try:
             with transaction.atomic():
+                tipo_usuario = request.POST.get('tipo_usuario')
+                is_superuser = request.POST.get('is_superuser') == 'on'
+                
+                if not tipo_usuario:
+                    raise ValueError("Debe seleccionar un tipo de usuario")
+
                 # Crear usuario base
                 usuario = User.objects.create(
-                    username=request.POST['dni'],  # Usamos el DNI como username
+                    username=request.POST['dni'],
                     email=request.POST['correo_institucional'],
                     password=make_password(request.POST['password']),
-                    is_staff=True,  # Por defecto, los docentes tendrán acceso al admin
+                    is_staff=True if tipo_usuario == 'docente' or is_superuser else False,
+                    is_superuser=is_superuser,
                     is_active=True,
                     first_name=request.POST.get('nombres', ''),
                 )
-                
-                # Crear perfil de docente
-                Docente.objects.create(
-                    user=usuario,
-                    dni=request.POST['dni'],
-                    apellido_paterno=request.POST['apellido_paterno'],
-                    apellido_materno=request.POST['apellido_materno'],
-                    telefono=request.POST['telefono'],
-                    correo_institucional=request.POST['correo_institucional'],
-                    codigo_doctor=request.POST['codigo_doctor'],
-                    direccion=request.POST['direccion']
-                )
-                
-                messages.success(request, 'Docente creado exitosamente')
+
+                datos_comunes = {
+                    'user': usuario,
+                    'dni': request.POST['dni'],
+                    'apellido_paterno': request.POST['apellido_paterno'],
+                    'apellido_materno': request.POST['apellido_materno'],
+                    'telefono': request.POST['telefono'],
+                    'correo_institucional': request.POST['correo_institucional'],
+                    'direccion': request.POST['direccion']
+                }
+
+                if tipo_usuario == 'docente':
+                    # El código de doctor es opcional ahora
+                    codigo_doctor = request.POST.get('codigo_doctor')
+                    if codigo_doctor:
+                        datos_comunes['codigo_doctor'] = codigo_doctor
+                    
+                    Docente.objects.create(**datos_comunes)
+                    mensaje_tipo = 'Docente'
+                else:
+                    Administrativo.objects.create(**datos_comunes)
+                    mensaje_tipo = 'Administrativo'
+
+                if is_superuser:
+                    messages.success(request, f'{mensaje_tipo} creado exitosamente con privilegios de superusuario')
+                else:
+                    messages.success(request, f'{mensaje_tipo} creado exitosamente')
+
                 return redirect('lista_usuarios')
                 
         except Exception as e:
-            messages.error(request, f'Error al crear docente: {str(e)}')
+            messages.error(request, f'Error al crear usuario: {str(e)}')
     
     return render(request, 'admin/usuarios/crear_usuario.html')
 

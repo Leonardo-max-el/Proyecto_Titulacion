@@ -72,7 +72,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # "django_browser_reload.middleware.BrowserReloadMiddleware",
+    'app_titulacion.middleware.SessionManagementMiddleware',
+    # 'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
 
 ROOT_URLCONF = 'admin_titulacion.urls'
@@ -94,6 +95,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'admin_titulacion.wsgi.application'
+ASGI_APPLICATION = 'admin_titulacion.asgi.application'
 
 
 # Database
@@ -162,5 +164,26 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = 'login'  # Ajusta esto a tu URL de login
-LOGIN_REDIRECT_URL = 'home'  # Ajusta esto a tu página principal
+# Configuraciones de sesión
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True  # Si usas HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 1209600  # 2 semanas en segundos
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Configuraciones personalizadas para el middleware de sesiones
+MAX_SESSIONS_PER_USER = 5  # Número máximo de sesiones simultáneas por usuario
+SESSION_INACTIVITY_TIMEOUT = 3600  # Tiempo de inactividad en segundos (1 hora)
+
+# Configuración de autenticación
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'login'
+
+# Configuración CSRF
+CSRF_COOKIE_SECURE = True  # Si estás usando HTTPS
+CSRF_COOKIE_HTTPONLY = True
+CSRF_USE_SESSIONS = True

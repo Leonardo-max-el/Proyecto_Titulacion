@@ -33,6 +33,12 @@
                     <i class="fa fa-user-graduate mr-2"></i>
                     Estudiantes
                 </button>
+                <button onclick="cambiarTab('administrativos')"
+                        class="tab-btn border-b-2 py-4 px-1 text-sm font-medium transition-colors duration-200"
+                        id="tab-administrativos">
+                    <i class="fa fa-user-tie mr-2"></i>
+                    Administrativos
+                </button>
                 <button onclick="cambiarTab('administradores')"
                         class="tab-btn border-b-2 py-4 px-1 text-sm font-medium transition-colors duration-200"
                         id="tab-administradores">
@@ -150,6 +156,59 @@
         </div>
     </div>
 
+    <div id="administrativos-tab" class="tab-content bg-white shadow-md rounded-lg overflow-hidden hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNI</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for usuario in usuarios %}
+                        {% if not usuario.is_superuser and usuario.administrativo %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                            <span class="text-orange-600 font-medium">
+                                                {{ usuario.administrativo.apellido_paterno|make_list|first|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ usuario.administrativo.apellido_paterno }} {{ usuario.administrativo.apellido_materno }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">{{ usuario.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.administrativo.dni }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.administrativo.correo_institucional }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/estado_usuario.html" with usuario=usuario %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/acciones_usuario.html" with usuario=usuario %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="administradores-tab" class="tab-content bg-white shadow-md rounded-lg overflow-hidden hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -219,7 +278,7 @@
 </style>
 
 <script>
-function cambiarTab(tabId) {
+function cambiarTab(tabName) {
     // Ocultar todos los contenidos
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.add('hidden');
@@ -227,17 +286,19 @@ function cambiarTab(tabId) {
     
     // Desactivar todos los botones
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
+        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
     });
     
     // Mostrar el contenido seleccionado
-    document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+    document.getElementById(`${tabName}-tab`).classList.remove('hidden');
     
     // Activar el botón seleccionado
-    document.getElementById(`tab-${tabId}`).classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    document.getElementById(`tab-${tabName}`).classList.add('border-blue-500', 'text-blue-600');
 }
 
-// Activar la primera pestaña por defecto
+// Inicializar la primera pestaña como activa
 document.addEventListener('DOMContentLoaded', function() {
     cambiarTab('docentes');
 });

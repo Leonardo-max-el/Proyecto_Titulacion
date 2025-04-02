@@ -63,11 +63,38 @@
                 </div>
 
                 <!-- Estudiantes Menu -->
+                {% if user.estudiante %}
                 <div class="mt-4" x-data="{ isOpen: false }">
                     <button @click="isOpen = !isOpen" class="flex items-center justify-between w-full px-2 py-2 text-gray-200 hover:bg-gray-700 rounded">
                         <div class="flex items-center">
                             <i class="fa fa-users mr-3"></i>
-                            <span x-show="sidebarOpen">Estudiantes</span>
+                            <span x-show="sidebarOpen">Titulacion</span>
+                        </div>
+                        <i class="fa fa-chevron-down text-xs" x-show="sidebarOpen" :class="{ 'transform rotate-180': isOpen }"></i>
+                    </button>
+                    <div x-show="isOpen && sidebarOpen" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 transform translate-y-0"
+                         x-transition:leave-end="opacity-0 transform -translate-y-2"
+                         class="ml-4 mt-2">
+                        <a href="{% url 'crear_expediente' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                            <i class="fa fa-list mr-3"></i>
+                            <span x-show="sidebarOpen">Crear Expediente</span>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Docente Menu -->
+                {% if user.is_superuser or user.docente %}
+                <div class="mt-4" x-data="{ isOpen: false }">
+                    <button @click="isOpen = !isOpen" class="flex items-center justify-between w-full px-2 py-2 text-gray-200 hover:bg-gray-700 rounded">
+                        <div class="flex items-center">
+                            <i class="fa fa-users mr-3"></i>
+                            <span x-show="sidebarOpen">Docente</span>
                         </div>
                         <i class="fa fa-chevron-down text-xs" x-show="sidebarOpen" :class="{ 'transform rotate-180': isOpen }"></i>
                     </button>
@@ -81,18 +108,39 @@
                          class="ml-4 mt-2">
                         <a href="{% url 'lista_expedientes' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
                             <i class="fa fa-list mr-3"></i>
-                            <span x-show="sidebarOpen">Listar</span>
-                        </a>
-                        <a href="#" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
-                            <i class="fa fa-plus mr-3"></i>
-                            <span x-show="sidebarOpen">Tipo Titulación</span>
+                            <span x-show="sidebarOpen">Expedientes</span>
                         </a>
                     </div>
                 </div>
+                {% endif %}
 
-                <!-- Agregar esto después del menú de Estudiantes y antes del cierre de nav -->
+                <!-- Administrativos Menu -->
+                {% if user.is_superuser or user.administrativo %}
+                <div class="mt-4" x-data="{ isOpen: false }">
+                    <button @click="isOpen = !isOpen" class="flex items-center justify-between w-full px-2 py-2 text-gray-200 hover:bg-gray-700 rounded">
+                        <div class="flex items-center">
+                            <i class="fa fa-users mr-3"></i>
+                            <span x-show="sidebarOpen">Administrativos</span>
+                        </div>
+                        <i class="fa fa-chevron-down text-xs" x-show="sidebarOpen" :class="{ 'transform rotate-180': isOpen }"></i>
+                    </button>
+                    <div x-show="isOpen && sidebarOpen" 
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 transform -translate-y-2"
+                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                        x-transition:leave-end="opacity-0 transform -translate-y-2"
+                        class="ml-4 mt-2">
+                        <a href="{% url 'lista_expedientes' %}" class="flex items-center px-2 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded">
+                            <i class="fa fa-list mr-3"></i>
+                            <span x-show="sidebarOpen">Seguimiento de Expedientes</span>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
                     {% if user.is_superuser %}
-                    <!-- Administración Menu -->
                     <div class="mt-4" x-data="{ isOpen: false }">
                         <button @click="isOpen = !isOpen" class="flex items-center justify-between w-full px-2 py-2 text-gray-200 hover:bg-gray-700 rounded">
                             <div class="flex items-center">
@@ -137,7 +185,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="logout" value="true">
                         <button type="submit" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
-                            <i class="fa fa-rocket"></i>
+                            <i class="fa fa-sign-out"></i>
                             <span>Cerrar Sesión</span>
                         </button>
                     </form>
@@ -155,6 +203,38 @@
 
     <!-- Alpine.js for dropdowns -->
     <script src="https://unpkg.com/alpinejs" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para manejar el cierre de sesión
+        function handleLogout(event) {
+            event.preventDefault();
+            
+            fetch('{% url "clouses" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = '{% url "login" %}';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Agregar el evento al formulario de logout
+        const logoutForm = document.querySelector('form[action="{% url "clouses" %}"]');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', handleLogout);
+        }
+    });
+    </script>
 </body>
         <!-- Sidebar -->
  

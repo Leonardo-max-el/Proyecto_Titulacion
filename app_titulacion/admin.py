@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Docente
+from .models import Docente, Administrativo
 
 @admin.register(Docente)
 class DocenteAdmin(admin.ModelAdmin):
@@ -22,3 +22,9 @@ class DocenteAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(Administrativo)
+class AdministrativoAdmin(admin.ModelAdmin):
+    list_display = ['dni', 'apellido_paterno', 'apellido_materno', 'correo_institucional']
+    search_fields = ['dni', 'apellido_paterno', 'apellido_materno', 'correo_institucional']
+    list_filter = ['fecha_registro']

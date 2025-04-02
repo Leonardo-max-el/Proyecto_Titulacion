@@ -5,102 +5,141 @@
     <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
         <!-- Encabezado -->
         <div class="border-b border-gray-200 pb-4 mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Registrar Nuevo Docente</h2>
-            <p class="text-sm text-gray-600 mt-1">Complete el formulario con la información del docente</p>
+            <h2 class="text-2xl font-bold text-gray-800">Registrar Nuevo Usuario</h2>
+            <p class="text-sm text-gray-600 mt-1">Complete el formulario con la información del nuevo usuario</p>
         </div>
 
         <form method="POST" class="space-y-6">
             {% csrf_token %}
 
-            <!-- Información Personal -->
+            <!-- Selección de Tipo de Usuario -->
             <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Información Personal</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- DNI -->
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Tipo de Usuario</h3>
+                <div class="space-y-4">
+                    <!-- Select para tipo de usuario -->
                     <div>
-                        <label for="dni" class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
-                        <input type="text" name="dni" id="dni" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               pattern="\d{8}" title="DNI debe tener 8 dígitos" required>
-                        <p class="text-xs text-gray-500 mt-1">Este será el nombre de usuario para iniciar sesión</p>
+                        <label for="tipo_usuario" class="block text-sm font-medium text-gray-700 mb-1">
+                            Seleccione el tipo de usuario
+                        </label>
+                        <select name="tipo_usuario" id="tipo_usuario" 
+                                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required>
+                            <option value="">Seleccione...</option>
+                            <option value="docente">Docente</option>
+                            <option value="administrativo">Administrativo</option>
+                        </select>
                     </div>
 
-                    <!-- Nombres -->
-                    <div>
-                        <label for="nombres" class="block text-sm font-medium text-gray-700 mb-1">Nombres</label>
-                        <input type="text" name="nombres" id="nombres" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               required>
+                    <!-- Checkbox para superusuario -->
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" name="is_superuser" id="is_superuser" 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="is_superuser" class="text-sm font-medium text-gray-700">
+                            Otorgar privilegios de superusuario
+                        </label>
                     </div>
-
-                    <!-- Apellido Paterno -->
-                    <div>
-                        <label for="apellido_paterno" class="block text-sm font-medium text-gray-700 mb-1">Apellido Paterno</label>
-                        <input type="text" name="apellido_paterno" id="apellido_paterno" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               required>
-                    </div>
-
-                    <!-- Apellido Materno -->
-                    <div>
-                        <label for="apellido_materno" class="block text-sm font-medium text-gray-700 mb-1">Apellido Materno</label>
-                        <input type="text" name="apellido_materno" id="apellido_materno" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               required>
-                    </div>
+                    <p class="text-xs text-yellow-600">
+                        <i class="fa fa-warning mr-1"></i>
+                        Advertencia: Los superusuarios tienen acceso completo al sistema. Use esta opción con precaución.
+                    </p>
                 </div>
             </div>
 
-            <!-- Información de Contacto -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Información de Contacto</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Teléfono -->
-                    <div>
-                        <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                        <input type="text" name="telefono" id="telefono" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               pattern="\d{9}" title="Teléfono debe tener 9 dígitos" required>
-                    </div>
+            <!-- Contenedores dinámicos basados en el tipo de usuario -->
+            <div id="formulario-dinamico" style="display: none;">
+                <!-- Información Personal -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Información Personal</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- DNI -->
+                        <div>
+                            <label for="dni" class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+                            <input type="text" name="dni" id="dni" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   pattern="\d{8}" title="DNI debe tener 8 dígitos" required>
+                            <p class="text-xs text-gray-500 mt-1">Este será el nombre de usuario para iniciar sesión</p>
+                        </div>
 
-                    <!-- Correo Institucional -->
-                    <div>
-                        <label for="correo_institucional" class="block text-sm font-medium text-gray-700 mb-1">Correo Institucional</label>
-                        <input type="email" name="correo_institucional" id="correo_institucional" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               required>
-                    </div>
+                        <!-- Nombres -->
+                        <div>
+                            <label for="nombres" class="block text-sm font-medium text-gray-700 mb-1">Nombres</label>
+                            <input type="text" name="nombres" id="nombres" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   required>
+                        </div>
 
-                    <!-- Dirección -->
-                    <div class="md:col-span-2">
-                        <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                        <input type="text" name="direccion" id="direccion" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               required>
+                        <!-- Apellido Paterno -->
+                        <div>
+                            <label for="apellido_paterno" class="block text-sm font-medium text-gray-700 mb-1">Apellido Paterno</label>
+                            <input type="text" name="apellido_paterno" id="apellido_paterno" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   required>
+                        </div>
+
+                        <!-- Apellido Materno -->
+                        <div>
+                            <label for="apellido_materno" class="block text-sm font-medium text-gray-700 mb-1">Apellido Materno</label>
+                            <input type="text" name="apellido_materno" id="apellido_materno" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   required>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Información Profesional -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Información Profesional</h3>
-                <div>
-                    <label for="codigo_doctor" class="block text-sm font-medium text-gray-700 mb-1">Código Doctor</label>
-                    <input type="text" name="codigo_doctor" id="codigo_doctor" 
-                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           required>
+                <!-- Información de Contacto -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Información de Contacto</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Teléfono -->
+                        <div>
+                            <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                            <input type="text" name="telefono" id="telefono" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   pattern="\d{9}" title="Teléfono debe tener 9 dígitos" required>
+                        </div>
+
+                        <!-- Correo Institucional -->
+                        <div>
+                            <label for="correo_institucional" class="block text-sm font-medium text-gray-700 mb-1">Correo Institucional</label>
+                            <input type="email" name="correo_institucional" id="correo_institucional" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   required>
+                        </div>
+
+                        <!-- Dirección -->
+                        <div class="md:col-span-2">
+                            <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                            <input type="text" name="direccion" id="direccion" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   required>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Credenciales de Acceso -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Credenciales de Acceso</h3>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                    <input type="password" name="password" id="password" 
-                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           required>
-                    <p class="text-xs text-gray-500 mt-1">Contraseña para iniciar sesión en el sistema</p>
+                <!-- Información Profesional (solo para docentes) -->
+                <div id="info_docente" class="bg-gray-50 rounded-lg p-4 mb-6" style="display: none;">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Información Profesional</h3>
+                    <div>
+                        <label for="codigo_doctor" class="block text-sm font-medium text-gray-700 mb-1">
+                            Código Doctor
+                            <span class="text-gray-500 text-xs">(opcional)</span>
+                        </label>
+                        <input type="text" name="codigo_doctor" id="codigo_doctor" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">Dejar en blanco si no aplica</p>
+                    </div>
+                </div>
+
+                <!-- Credenciales de Acceso -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Credenciales de Acceso</h3>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                        <input type="password" name="password" id="password" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required>
+                        <p class="text-xs text-gray-500 mt-1">Contraseña para iniciar sesión en el sistema</p>
+                    </div>
                 </div>
             </div>
 
@@ -123,17 +162,61 @@
                 <button type="submit" 
                         class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 flex items-center">
                     <i class="fa fa-save mr-2"></i>
-                    Registrar Docente
+                    <span id="btn_text">Registrar Usuario</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Script para validaciones en tiempo real -->
+<!-- Script para validaciones y comportamiento dinámico -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Validación de DNI
+    const tipoUsuarioSelect = document.getElementById('tipo_usuario');
+    const formularioDinamico = document.getElementById('formulario-dinamico');
+    const infoDocente = document.getElementById('info_docente');
+    const btnText = document.getElementById('btn_text');
+    const superuserCheck = document.getElementById('is_superuser');
+
+    // Función para actualizar el texto del botón
+    function updateButtonText() {
+        const tipo = tipoUsuarioSelect.value;
+        const esSuperuser = superuserCheck.checked;
+        
+        let texto = 'Registrar ';
+        if (tipo === 'docente') {
+            texto += 'Docente';
+        } else if (tipo === 'administrativo') {
+            texto += 'Administrativo';
+        } else {
+            texto += 'Usuario';
+        }
+        
+        if (esSuperuser) {
+            texto += ' (Superusuario)';
+        }
+        
+        btnText.textContent = texto;
+    }
+
+    // Mostrar/ocultar formulario según selección
+    tipoUsuarioSelect.addEventListener('change', function() {
+        if (this.value) {
+            formularioDinamico.style.display = 'block';
+            if (this.value === 'docente') {
+                infoDocente.style.display = 'block';
+            } else {
+                infoDocente.style.display = 'none';
+            }
+        } else {
+            formularioDinamico.style.display = 'none';
+        }
+        updateButtonText();
+    });
+
+    superuserCheck.addEventListener('change', updateButtonText);
+
+    // Validaciones existentes
     const dniInput = document.getElementById('dni');
     dniInput.addEventListener('input', function() {
         if (this.value.length !== 8) {
@@ -145,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Validación de teléfono
     const telefonoInput = document.getElementById('telefono');
     telefonoInput.addEventListener('input', function() {
         if (this.value.length !== 9) {
@@ -157,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Validación de correo institucional
     const emailInput = document.getElementById('correo_institucional');
     emailInput.addEventListener('input', function() {
         const isValid = this.value.includes('@') && this.value.includes('.');
