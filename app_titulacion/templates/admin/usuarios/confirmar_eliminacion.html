@@ -1,0 +1,109 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <div class="max-w-lg mx-auto">
+        <!-- Tarjeta de confirmación -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="bg-red-500 px-6 py-4">
+                <div class="flex items-center">
+                    <div class="rounded-full bg-white p-2">
+                        <i class="fa fa-exclamation-triangle text-red-500 text-xl"></i>
+                    </div>
+                    <h2 class="ml-3 text-xl font-bold text-white">Confirmar Eliminación</h2>
+                </div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="p-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">¿Está seguro que desea eliminar este usuario?</h3>
+                    <p class="text-gray-600">Esta acción no se puede deshacer y eliminará toda la información asociada al usuario.</p>
+                </div>
+
+                <!-- Información del usuario -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium w-32">Tipo:</span>
+                            <span class="text-gray-800">{{ tipo_usuario }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium w-32">Nombre:</span>
+                            <span class="text-gray-800">{{ nombre_completo }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium w-32">Usuario:</span>
+                            <span class="text-gray-800">{{ usuario.username }}</span>
+                        </div>
+                        {% if usuario.docente %}
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium w-32">Código:</span>
+                            <span class="text-gray-800">{{ usuario.docente.codigo_doctor }}</span>
+                        </div>
+                        {% endif %}
+                        {% if usuario.estudiante %}
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium w-32">Escuela:</span>
+                            <span class="text-gray-800">{{ usuario.estudiante.escuela_profesional }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Advertencia -->
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fa fa-warning text-red-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                Al eliminar este usuario, también se eliminarán:
+                            </p>
+                            <ul class="list-disc list-inside text-sm text-red-700 mt-2">
+                                {% if usuario.docente %}
+                                <li>Perfil de docente</li>
+                                <li>Registros asociados</li>
+                                {% endif %}
+                                {% if usuario.estudiante %}
+                                <li>Perfil de estudiante</li>
+                                <li>Expedientes asociados</li>
+                                <li>Documentos subidos</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'lista_usuarios' %}" 
+                       class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
+                        <i class="fa fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <form method="POST" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center">
+                            <i class="fa fa-trash mr-2"></i>
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mt-4 {% if message.tags == 'success' %}bg-green-100 text-green-700 border-green-500{% else %}bg-red-100 text-red-700 border-red-500{% endif %} border-l-4 p-4 rounded">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

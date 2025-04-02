@@ -1,0 +1,245 @@
+{% extends 'index_master.html' %} 
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm rounded-lg mb-6 p-4">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">Gestión de Usuarios</h1>
+            <a href="{% url 'crear_usuario' %}" 
+               class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center transition duration-150 ease-in-out">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Crear Usuario
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="mb-4">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button onclick="cambiarTab('docentes')"
+                        class="tab-btn border-b-2 py-4 px-1 text-sm font-medium transition-colors duration-200"
+                        id="tab-docentes">
+                    <i class="fa fa-chalkboard-teacher mr-2"></i>
+                    Docentes
+                </button>
+                <button onclick="cambiarTab('estudiantes')"
+                        class="tab-btn border-b-2 py-4 px-1 text-sm font-medium transition-colors duration-200"
+                        id="tab-estudiantes">
+                    <i class="fa fa-user-graduate mr-2"></i>
+                    Estudiantes
+                </button>
+                <button onclick="cambiarTab('administradores')"
+                        class="tab-btn border-b-2 py-4 px-1 text-sm font-medium transition-colors duration-200"
+                        id="tab-administradores">
+                    <i class="fa fa-user-shield mr-2"></i>
+                    Administradores
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Table Sections -->
+    <div id="docentes-tab" class="tab-content bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código Doctor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for usuario in usuarios %}
+                        {% if not usuario.is_superuser and usuario.docente %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <span class="text-blue-600 font-medium">
+                                                {{ usuario.docente.apellido_paterno|make_list|first|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            Dr. {{ usuario.docente.apellido_paterno }} {{ usuario.docente.apellido_materno }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">{{ usuario.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.docente.codigo_doctor }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.docente.correo_institucional }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/estado_usuario.html" with usuario=usuario %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/acciones_usuario.html" with usuario=usuario %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="estudiantes-tab" class="tab-content bg-white shadow-md rounded-lg overflow-hidden hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Escuela</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for usuario in usuarios %}
+                        {% if not usuario.is_superuser and usuario.estudiante %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                            <span class="text-green-600 font-medium">
+                                                {{ usuario.estudiante.apellido_paterno|make_list|first|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ usuario.estudiante.apellido_paterno }} {{ usuario.estudiante.apellido_materno }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">{{ usuario.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.estudiante.escuela_profesional }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.estudiante.email }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/estado_usuario.html" with usuario=usuario %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/acciones_usuario.html" with usuario=usuario %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="administradores-tab" class="tab-content bg-white shadow-md rounded-lg overflow-hidden hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for usuario in usuarios %}
+                        {% if usuario.is_superuser %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <span class="text-purple-600 font-medium">
+                                                {{ usuario.username|make_list|first|upper }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ usuario.username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">Administrador</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.email }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/estado_usuario.html" with usuario=usuario %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% include "admin/usuarios/components/acciones_usuario.html" with usuario=usuario %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación -->
+    {% include "admin/usuarios/components/modal_eliminar.html" %}
+</div>
+
+<!-- Componentes -->
+{% include "admin/usuarios/components/scripts.html" %}
+
+<style>
+.tab-btn {
+    @apply text-gray-500 hover:text-gray-700 hover:border-gray-300;
+}
+.tab-btn.active {
+    @apply border-blue-500 text-blue-600;
+}
+.tab-btn:not(.active) {
+    @apply border-transparent;
+}
+</style>
+
+<script>
+function cambiarTab(tabId) {
+    // Ocultar todos los contenidos
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Desactivar todos los botones
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Mostrar el contenido seleccionado
+    document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+    
+    // Activar el botón seleccionado
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+}
+
+// Activar la primera pestaña por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    cambiarTab('docentes');
+});
+</script>
+{% endblock %}  

@@ -163,3 +163,41 @@ ESTADO_CHOICES = [
     ('corregir', 'Requiere Corrección'),
 ]
 
+class Docente(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    dni = models.CharField(
+        max_length=8,
+        unique=True,
+        validators=[RegexValidator(regex=r'^\d{8}$', message='DNI debe contener 8 dígitos')]
+    )
+    apellido_paterno = models.CharField(max_length=100)
+    apellido_materno = models.CharField(max_length=100)
+    telefono = models.CharField(
+        max_length=9,
+        validators=[RegexValidator(regex=r'^\d{9}$', message='Teléfono debe contener 9 dígitos')]
+    )
+    correo_institucional = models.EmailField(
+        unique=True,
+        help_text='Correo institucional del docente'
+    )
+    codigo_doctor = models.CharField(
+        max_length=20,
+        unique=True,
+        help_text='Código único de identificación como doctor'
+    )
+    direccion = models.CharField(max_length=200)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Docente'
+        verbose_name_plural = 'Docentes'
+        ordering = ['apellido_paterno', 'apellido_materno']
+
+    def __str__(self):
+        return f"Dr. {self.apellido_paterno} {self.apellido_materno}"
+
+    @property
+    def nombre_completo(self):
+        return f"{self.user.first_name} {self.apellido_paterno} {self.apellido_materno}"
+

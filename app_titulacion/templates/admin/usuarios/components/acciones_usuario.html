@@ -1,0 +1,12 @@
+<div class="flex space-x-2">
+    <a href="{% url 'editar_usuario' usuario.id %}" 
+       class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md inline-flex items-center transition duration-150 ease-in-out">
+        <i class="fa fa-edit mr-1"></i>
+        Editar
+    </a>
+    <button onclick="confirmarEliminacion({{ usuario.id }})"
+            class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md inline-flex items-center transition duration-150 ease-in-out">
+        <i class="fa fa-trash mr-1"></i>
+        Eliminar
+    </button>
+</div> 

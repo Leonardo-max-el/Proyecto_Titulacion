@@ -1,0 +1,13 @@
+<script>
+function confirmarEliminacion(userId) {
+    const modal = document.getElementById('modalEliminar');
+    const form = document.getElementById('formEliminar');
+    modal.classList.remove('hidden');
+    form.action = `/eliminar_usuario/${userId}/`;
+}
+
+function cerrarModal() {
+    const modal = document.getElementById('modalEliminar');
+    modal.classList.add('hidden');
+}
+</script> 
