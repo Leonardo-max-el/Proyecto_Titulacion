@@ -1,0 +1,79 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Expedientes Asignados</h1>
+                <p class="text-blue-100">Lista de expedientes donde usted es asesor</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <span class="bg-blue-900 px-4 py-2 rounded-full text-sm">
+                    <i class="fa fa-file-text mr-2"></i>
+                    Total: {{ expedientes|length }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Expedientes -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        {% if expedientes %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modalidad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Actualización</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for expediente in expedientes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ expediente.codigo_expediente }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ expediente.estudiante.nombre_completo }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ expediente.get_modalidad_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {% if expediente.estado == 'en_proceso' %} bg-yellow-100 text-yellow-800
+                                {% elif expediente.estado == 'observado' %} bg-red-100 text-red-800
+                                {% elif expediente.estado == 'aprobado' %} bg-green-100 text-green-800
+                                {% else %} bg-gray-100 text-gray-800
+                                {% endif %}">
+                                {{ expediente.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ expediente.fecha_actualizacion|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="#" class="text-blue-600 hover:text-blue-900">Ver Detalles</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <div class="text-gray-500 mb-4">
+                <i class="fa fa-folder-open text-4xl"></i>
+            </div>
+            <p class="text-gray-600">No hay expedientes asignados actualmente</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

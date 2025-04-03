@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from app_titulacion.models import Expediente, Documento
+from app_titulacion.models import Expediente, Documento, Docente, Mensaje
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 import json
 
 @login_required
@@ -17,6 +18,33 @@ def gestionar_expediente_admin(request, expediente_id):
     expediente = get_object_or_404(Expediente, id=expediente_id)
     
     if request.method == 'POST':
+        # Manejar la asignación del asesor
+        if request.POST.get('action') == 'asignar_asesor':
+            asesor_id = request.POST.get('asesor_id')
+            mensaje_contenido = request.POST.get('mensaje')
+            if asesor_id:
+                asesor = get_object_or_404(Docente, id=asesor_id)
+                expediente.asesor = asesor
+                expediente.save()
+                
+                # Crear mensaje de asignación
+                from app_titulacion.models import Mensaje
+                Mensaje.objects.create(
+                    expediente=expediente,
+                    remitente=request.user,
+                    destinatario=asesor.user,
+                    asunto=f'Asignación de Asesor - {expediente.get_modalidad_display()}',
+                    contenido=mensaje_contenido,
+                    tipo='asignacion'
+                )
+                
+                messages.success(request, 'Asesor asignado correctamente')
+            else:
+                expediente.asesor = None
+                expediente.save()
+                messages.success(request, 'Asesor removido correctamente')
+            return redirect('gestionar_expediente_admin', expediente_id=expediente_id)
+
         # Actualizar estado del expediente solo si se proporciona un nuevo estado
         nuevo_estado = request.POST.get('estado')
         if nuevo_estado:
@@ -33,8 +61,10 @@ def gestionar_expediente_admin(request, expediente_id):
         
         return redirect('gestionar_expediente_admin', expediente_id=expediente_id)
     
+    docentes = Docente.objects.all()
     return render(request, 'grados/gestionar_expediente_admin.html', {
-        'expediente': expediente
+        'expediente': expediente,
+        'docentes': docentes
     })
 
 @login_required
@@ -112,3 +142,40 @@ def actualizar_estado_documento(request, documento_id):
         'success': False,
         'error': 'Método no permitido'
     })
+
+@login_required
+def responder_mensaje(request, mensaje_id):
+    if request.method == 'POST':
+        mensaje_original = None
+        try:
+            mensaje_original = get_object_or_404(Mensaje, id=mensaje_id)
+            contenido_respuesta = request.POST.get('contenido')
+            
+            if not contenido_respuesta:
+                messages.error(request, 'El contenido de la respuesta no puede estar vacío')
+                return redirect('gestionar_expediente_admin', expediente_id=mensaje_original.expediente.id)
+            
+            # Crear el mensaje de respuesta
+            Mensaje.objects.create(
+                expediente=mensaje_original.expediente,
+                remitente=request.user,
+                destinatario=mensaje_original.remitente,
+                asunto=f'RE: {mensaje_original.asunto}',
+                contenido=contenido_respuesta,
+                tipo='respuesta',
+                mensaje_padre=mensaje_original
+            )
+            
+            messages.success(request, 'Respuesta enviada correctamente')
+            return redirect('gestionar_expediente_admin', expediente_id=mensaje_original.expediente.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error al enviar la respuesta: {str(e)}')
+            if mensaje_original:
+                return redirect('gestionar_expediente_admin', expediente_id=mensaje_original.expediente.id)
+            return redirect('lista_expedientes')
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Método no permitido'
+    }, status=405)

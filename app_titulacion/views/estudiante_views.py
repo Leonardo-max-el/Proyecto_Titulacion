@@ -89,6 +89,45 @@ def gestionar_expediente(request, expediente_id):
                 messages.success(request, 'Documentos subidos correctamente.')
                 return redirect('gestionar_expediente', expediente_id=expediente_id)
 
+            # Manejar envío de mensajes
+            if 'mensaje' in request.POST:
+                contenido = request.POST.get('mensaje')
+                if contenido:
+                    from app_titulacion.models import Mensaje
+                    # Si hay un asesor asignado, enviar el mensaje al asesor
+                    if expediente.asesor:
+                        destinatario = expediente.asesor.user
+                    else:
+                        # Si no hay asesor, enviar a un administrador (deberías tener una forma de obtener el admin)
+                        from django.contrib.auth import get_user_model
+                        User = get_user_model()
+                        destinatario = User.objects.filter(is_staff=True).first()
+                    
+                    mensaje = Mensaje.objects.create(
+                        expediente=expediente,
+                        remitente=request.user,
+                        destinatario=destinatario,
+                        asunto=f'Mensaje sobre expediente {expediente.codigo_expediente}',
+                        contenido=contenido,
+                        tipo='notificacion'
+                    )
+                    
+                    # Manejar archivos adjuntos si los hay
+                    if 'archivos' in request.FILES:
+                        from app_titulacion.models import ArchivoMensaje
+                        for archivo in request.FILES.getlist('archivos'):
+                            ArchivoMensaje.objects.create(
+                                mensaje=mensaje,
+                                archivo=archivo,
+                                nombre_archivo=archivo.name
+                            )
+                    
+                    messages.success(request, 'Mensaje enviado correctamente.')
+                    return redirect('gestionar_expediente', expediente_id=expediente_id)
+                else:
+                    messages.error(request, 'El mensaje no puede estar vacío.')
+                    return redirect('gestionar_expediente', expediente_id=expediente_id)
+
         return render(request, 'estudiante/gestionar_expediente.html', {
             'expediente': expediente,
             'documentos': documentos

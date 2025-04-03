@@ -31,8 +31,28 @@
                 <p class="text-sm text-gray-600">Código: {{ expediente.codigo_expediente }} - {{ expediente.get_modalidad_display }}</p>
                 <p class="text-sm text-gray-600">Estudiante: {{ expediente.estudiante.nombre_completo }}</p>
                 <p class="text-sm text-gray-600">Fecha de creación: {{ expediente.fecha_creacion|date:"d/m/Y" }}</p>
+                <div class="mt-4">
+                    {% if not user.docente %}
+                    <h3 class="text-sm font-medium text-gray-900">Asesor Asignado</h3>
+                    {% if expediente.asesor %}
+                        <div class="mt-2 p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">{{ expediente.asesor.nombre_completo }}</p>
+                            <p class="text-xs text-gray-500">{{ expediente.asesor.codigo_doctor }}</p>
+                        </div>
+                    {% endif %}
+                    <button onclick="openAsignacionModal()" 
+                            class="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {% if expediente.asesor %}
+                            Cambiar Asesor
+                        {% else %}
+                            Asignar Asesor
+                        {% endif %}
+                    </button>
+                    {% endif %}
+                </div>
             </div>
             <div>
+                {% if not user.docente %}
                 <h2 class="text-lg font-medium text-gray-900">Estado del Expediente</h2>
                 <form method="POST" class="mt-2">
                     {% csrf_token %}
@@ -46,7 +66,53 @@
                         Actualizar Estado
                     </button>
                 </form>
+                {% endif %}
             </div>
+        </div>
+    </div>
+
+    <!-- Sección de Mensajes -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Historial de Comunicaciones</h2>
+        <div class="space-y-4">
+            {% for mensaje in expediente.mensajes.all %}
+            <div class="border rounded-lg p-4 {% if not mensaje.mensaje_padre %}bg-white{% else %}bg-gray-50 ml-8{% endif %}">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-900">{{ mensaje.asunto }}</h3>
+                        <p class="text-xs text-gray-500">De: {{ mensaje.remitente.get_full_name }} - {{ mensaje.tiempo_transcurrido }}</p>
+                        <p class="text-xs text-gray-500">Para: {{ mensaje.destinatario.get_full_name }}</p>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded-full {% if mensaje.tipo == 'asignacion' %}bg-blue-100 text-blue-800{% elif mensaje.tipo == 'observacion' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">{{ mensaje.get_tipo_display }}</span>
+                </div>
+                <div class="text-sm text-gray-700 mb-3">{{ mensaje.contenido|linebreaks }}</div>
+                <button onclick="mostrarFormularioRespuesta('{{ mensaje.id }}')" 
+                        class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                    </svg>
+                    Responder
+                </button>
+                <!-- Formulario de Respuesta (inicialmente oculto) -->
+                <div id="respuesta-{{ mensaje.id }}" class="hidden mt-3 p-3 bg-gray-50 rounded-lg">
+                    <form method="POST" action="{% url 'responder_mensaje' mensaje.id %}">
+                        {% csrf_token %}
+                        <textarea name="contenido" 
+                                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                  rows="3"
+                                  placeholder="Escribe tu respuesta..."></textarea>
+                        <div class="mt-2 flex justify-end">
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Enviar Respuesta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-center py-4">No hay mensajes en este expediente</p>
+            {% endfor %}
         </div>
     </div>
 
@@ -130,7 +196,79 @@
     </div>
 </div>
 
+<!-- Modal de Asignación de Asesor -->
+<div id="asignacionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="flex flex-col">
+            <div class="flex justify-between items-center pb-3">
+                <h3 class="text-lg font-medium text-gray-900">Asignación de Asesor</h3>
+                <button onclick="closeAsignacionModal()" class="text-gray-400 hover:text-gray-500">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form method="POST" class="mt-4" id="asignacionForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="asignar_asesor">
+                
+                <!-- Campo Para (Asesor) -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Para:</label>
+                    <select name="asesor_id" required
+                            class="w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                        <option value="">Seleccionar Asesor</option>
+                        {% for docente in docentes %}
+                            <option value="{{ docente.id }}" {% if expediente.asesor.id == docente.id %}selected{% endif %}>
+                                {{ docente.nombre_completo }} - {{ docente.codigo_doctor }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Campo Asunto -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Asunto:</label>
+                    <input type="text" readonly 
+                           value="Asignación de Asesor - {{ expediente.get_modalidad_display }}"
+                           class="w-full px-3 py-2 text-sm bg-gray-50 border-gray-300 rounded-md">
+                </div>
+
+                <!-- Campo Mensaje -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mensaje:</label>
+                    <textarea name="mensaje" required
+                              placeholder="Escriba un mensaje para el asesor..."
+                              class="w-full px-3 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                              rows="4"></textarea>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeAsignacionModal()"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Enviar Asignación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+function openAsignacionModal() {
+    document.getElementById('asignacionModal').classList.remove('hidden');
+}
+
+function closeAsignacionModal() {
+    document.getElementById('asignacionModal').classList.add('hidden');
+}
+
 function toggleObservaciones(documentoId, button) {
     const container = document.getElementById(`observaciones_${documentoId}`);
     const textarea = document.getElementById(`textarea_${documentoId}`);
@@ -205,5 +343,18 @@ function eliminarObservaciones(documentoId, button) {
         alert('Error al eliminar las observaciones');
     });
 }
+function mostrarFormularioRespuesta(mensajeId) {
+    const formulario = document.getElementById(`respuesta-${mensajeId}`);
+    if (formulario.classList.contains('hidden')) {
+        // Ocultar todos los formularios de respuesta
+        document.querySelectorAll('[id^="respuesta-"]').forEach(form => {
+            form.classList.add('hidden');
+        });
+        // Mostrar el formulario seleccionado
+        formulario.classList.remove('hidden');
+    } else {
+        formulario.classList.add('hidden');
+    }
+}
 </script>
-{% endblock %} 
+{% endblock %}

@@ -11,6 +11,7 @@ from .views.admin_views import lista_usuarios, crear_usuario, editar_usuario, el
 from . import views
 
 urlpatterns = [
+    path('docente/expedientes/', docente_views.lista_expedientes, name='lista_expedientes_docente'),
     path('index', index_views.index, name='index'),
     path('', auth_views.register , name='register'),
     path('login/', auth_views.custom_login_view, name='login'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('lista_expedientes/', grados_views.lista_expedientes, name='lista_expedientes'),
     path('gestionar_expediente_admin/<int:expediente_id>/', grados_views.gestionar_expediente_admin, name='gestionar_expediente_admin'),
     path('actualizar-observaciones/<int:documento_id>/', grados_views.actualizar_observaciones, name='actualizar_observaciones'),
+    path('responder-mensaje/<int:mensaje_id>/', grados_views.responder_mensaje, name='responder_mensaje'),
 
     path('lista_usuarios/', lista_usuarios, name='lista_usuarios'),
     path('crear_usuario/', crear_usuario, name='crear_usuario'),

@@ -35,6 +35,47 @@ class Estudiante(models.Model):
     def nombre_completo(self):
         return f"{self.nombres} {self.apellido_paterno}"
 
+
+class Docente(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    dni = models.CharField(
+        max_length=8,
+        unique=True,
+        validators=[RegexValidator(regex=r'^\d{8}$', message='DNI debe contener 8 dígitos')]
+    )
+    apellido_paterno = models.CharField(max_length=100)
+    apellido_materno = models.CharField(max_length=100)
+    telefono = models.CharField(
+        max_length=9,
+        validators=[RegexValidator(regex=r'^\d{9}$', message='Teléfono debe contener 9 dígitos')]
+    )
+    correo_institucional = models.EmailField(
+        unique=True,
+        help_text='Correo institucional del docente'
+    )
+    codigo_doctor = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text='Código único de identificación como doctor (opcional)'
+    )
+    direccion = models.CharField(max_length=200)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Docente'
+        verbose_name_plural = 'Docentes'
+        ordering = ['apellido_paterno', 'apellido_materno']
+
+    def __str__(self):
+        return f"Dr. {self.apellido_paterno} {self.apellido_materno}"
+
+    @property
+    def nombre_completo(self):
+        return f"{self.user.first_name} {self.apellido_paterno} {self.apellido_materno}"
+
 class Expediente(models.Model):
     ESTADO_CHOICES = [
         ('en_proceso', 'En Proceso'),
@@ -50,6 +91,7 @@ class Expediente(models.Model):
     ]
 
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='expedientes')
+    asesor = models.ForeignKey(Docente, on_delete=models.SET_NULL, null=True, blank=True, related_name='expedientes_asesorados')
     codigo_expediente = models.CharField(max_length=20, unique=True)
     modalidad = models.CharField(max_length=50, choices=MODALIDAD_CHOICES)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -79,6 +121,75 @@ class Expediente(models.Model):
 
     class Meta:
         ordering = ['-fecha_creacion']
+
+
+def mensaje_directory_path(instance, filename):
+    # Los archivos se subirán a media/mensajes/YYYY/expediente_id/mensaje_id/filename
+    return f'mensajes/{instance.mensaje.expediente.id}/{instance.mensaje.id}/{filename}'
+
+class ArchivoMensaje(models.Model):
+    mensaje = models.ForeignKey('app_titulacion.Mensaje', on_delete=models.CASCADE, related_name='archivos')
+    archivo = models.FileField(upload_to=mensaje_directory_path)
+    nombre_archivo = models.CharField(max_length=255)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Archivo de Mensaje'
+        verbose_name_plural = 'Archivos de Mensajes'
+        ordering = ['-fecha_subida']
+
+    def __str__(self):
+        return f"{self.nombre_archivo} - {self.mensaje.expediente.codigo_expediente}"
+
+class Mensaje(models.Model):
+    TIPO_CHOICES = [
+        ('asignacion', 'Asignación de Asesor'),
+        ('observacion', 'Observación'),
+        ('respuesta', 'Respuesta'),
+        ('notificacion', 'Notificación')
+    ]
+
+    expediente = models.ForeignKey(Expediente, on_delete=models.CASCADE, related_name='mensajes')
+    remitente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mensajes_enviados')
+    destinatario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mensajes_recibidos')
+    asunto = models.CharField(max_length=200)
+    contenido = models.TextField()
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+    leido = models.BooleanField(default=False)
+    mensaje_padre = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='respuestas')
+
+    class Meta:
+        ordering = ['-fecha_envio']
+        verbose_name = 'Mensaje'
+        verbose_name_plural = 'Mensajes'
+
+    def __str__(self):
+        return f"{self.asunto} - {self.expediente.codigo_expediente}"
+
+    def marcar_como_leido(self):
+        self.leido = True
+        self.save()
+
+    @property
+    def tiene_respuestas(self):
+        return self.respuestas.exists()
+
+    @property
+    def tiempo_transcurrido(self):
+        ahora = timezone.now()
+        diferencia = ahora - self.fecha_envio
+
+        if diferencia.days > 0:
+            return f"hace {diferencia.days} días"
+        elif diferencia.seconds >= 3600:
+            horas = diferencia.seconds // 3600
+            return f"hace {horas} horas"
+        elif diferencia.seconds >= 60:
+            minutos = diferencia.seconds // 60
+            return f"hace {minutos} minutos"
+        else:
+            return "hace unos segundos"
 
 class Documento(models.Model):
     TIPO_DOCUMENTO_CHOICES = [
@@ -163,45 +274,7 @@ ESTADO_CHOICES = [
     ('corregir', 'Requiere Corrección'),
 ]
 
-class Docente(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    dni = models.CharField(
-        max_length=8,
-        unique=True,
-        validators=[RegexValidator(regex=r'^\d{8}$', message='DNI debe contener 8 dígitos')]
-    )
-    apellido_paterno = models.CharField(max_length=100)
-    apellido_materno = models.CharField(max_length=100)
-    telefono = models.CharField(
-        max_length=9,
-        validators=[RegexValidator(regex=r'^\d{9}$', message='Teléfono debe contener 9 dígitos')]
-    )
-    correo_institucional = models.EmailField(
-        unique=True,
-        help_text='Correo institucional del docente'
-    )
-    codigo_doctor = models.CharField(
-        max_length=20,
-        unique=True,
-        null=True,
-        blank=True,
-        help_text='Código único de identificación como doctor (opcional)'
-    )
-    direccion = models.CharField(max_length=200)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        verbose_name = 'Docente'
-        verbose_name_plural = 'Docentes'
-        ordering = ['apellido_paterno', 'apellido_materno']
-
-    def __str__(self):
-        return f"Dr. {self.apellido_paterno} {self.apellido_materno}"
-
-    @property
-    def nombre_completo(self):
-        return f"{self.user.first_name} {self.apellido_paterno} {self.apellido_materno}"
 
 class Administrativo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
