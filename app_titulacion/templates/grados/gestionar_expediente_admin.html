@@ -75,7 +75,7 @@
     <div class="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Historial de Comunicaciones</h2>
         <div class="space-y-4">
-            {% for mensaje in expediente.mensajes.all %}
+            {% for mensaje in expediente.mensajes.all|dictsort:"fecha_envio" %}
             <div class="border rounded-lg p-4 {% if not mensaje.mensaje_padre %}bg-white{% else %}bg-gray-50 ml-8{% endif %}">
                 <div class="flex justify-between items-start mb-2">
                     <div>

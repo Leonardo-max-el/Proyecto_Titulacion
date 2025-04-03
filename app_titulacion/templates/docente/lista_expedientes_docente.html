@@ -39,7 +39,7 @@
                         </div>
                         <div class="mt-2">
                             <h3 class="text-sm font-medium text-gray-900 mb-3">Historial de Mensajes</h3>
-                            {% for mensaje in expediente.mensajes.all %}
+                            {% for mensaje in expediente.mensajes.all|dictsort:"fecha_envio" %}
                             <div class="mb-4 p-4 bg-gray-50 rounded-lg">
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1">
